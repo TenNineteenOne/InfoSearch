@@ -581,6 +581,95 @@
     section:nth-child(6) { animation-delay: 0.30s; }
     section:nth-child(7) { animation-delay: 0.35s; }
     section:nth-child(8) { animation-delay: 0.40s; }
+    section:nth-child(9) { animation-delay: 0.45s; }
+
+    /* ── EXECUTIVE SUMMARY ── */
+    .exec-summary {
+      background: linear-gradient(135deg, #0f1d2e 0%, #111a27 100%);
+      border: 1px solid rgba(59,158,255,0.3);
+      border-radius: 14px;
+      padding: 36px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exec-summary::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+    }
+
+    .exec-summary::after {
+      content: '';
+      position: absolute; bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,232,176,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .exec-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 640px) { .exec-row { grid-template-columns: 1fr; } }
+
+    .exec-block {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .exec-block .eb-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .exec-block.verdict .eb-label  { color: var(--accent); }
+    .exec-block.access  .eb-label  { color: var(--warn); }
+
+    .exec-block p {
+      font-size: 13.5px;
+      line-height: 1.65;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(0,232,176,0.1);
+      border: 1px solid rgba(0,232,176,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+
+    .access-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(245,166,35,0.1);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--warn);
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body>
@@ -622,6 +711,7 @@
 <!-- ═══════════════════════════════════════════ NAV -->
 <nav>
   <div class="nav-inner">
+    <a href="#s0">Executive Summary</a>
     <a href="#s1">Identification</a>
     <a href="#s2">Mechanism</a>
     <a href="#s3">Clinical Evidence</a>
@@ -636,7 +726,28 @@
 <main>
   <div class="container">
 
-    <!-- ─── 1. IDENTIFICATION -->
+    <!-- ─── 0. EXECUTIVE SUMMARY -->
+    <section id="s0">
+      <div class="section-header">
+        <span class="section-num">00</span>
+        <h2>Executive Summary</h2>
+      </div>
+
+      <div class="exec-summary">
+        <div class="exec-row">
+          <div class="exec-block verdict">
+            <div class="eb-label">Bottom Line — Evidence Quality</div>
+            <div class="verdict-badge">⭐⭐ Moderate Confidence</div>
+            <p>CEFALY has credible, peer-reviewed RCT evidence supporting modest but statistically significant efficacy for both acute and preventive episodic migraine treatment, with an excellent safety profile; however, all pivotal trials are industry-sponsored, the prevention trial is substantially underpowered, therapeutic gain over sham is modest for acute use, and no head-to-head pharmacological comparator data exist — positioning it best as an adjunct or a preferred option for patients with contraindications to, intolerance of, or preference against pharmacological therapies.</p>
+          </div>
+          <div class="exec-block access">
+            <div class="eb-label">Access Summary — Cost &amp; Coverage</div>
+            <div class="access-badge">⚠ Coverage Barrier</div>
+            <p>Medicare non-coverage (A9270) and inconsistent commercial payer DME reimbursement are the primary access barriers; out-of-pocket cost is approximately $500 upfront plus $350–$450/year in electrodes, which over 2–3 years is cost-competitive with branded pharmacological prevention options.</p>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="s1">
       <div class="section-header">
         <span class="section-num">01</span>
@@ -1130,15 +1241,6 @@
         </div>
       </div>
 
-      <!-- BOTTOM LINE -->
-      <div class="bottom-line" style="margin-top:36px">
-        <div class="bl-label">Bottom Line</div>
-        <p>CEFALY has credible, peer-reviewed RCT evidence supporting modest but statistically significant efficacy for both acute and preventive episodic migraine treatment, with an excellent safety profile; however, all pivotal trials are industry-sponsored, the prevention trial is substantially underpowered, therapeutic gain over sham is modest for acute use, and no head-to-head pharmacological comparator data exist — positioning it best as an adjunct or a preferred option for patients with contraindications to, intolerance of, or preference against pharmacological therapies.</p>
-        <div class="access-summary">
-          <div class="bl-label">Access Summary</div>
-          <p>Medicare non-coverage (A9270) and inconsistent commercial payer DME reimbursement are the primary access barriers; out-of-pocket cost is approximately $500 upfront plus $350–$450/year in electrodes, which over 2–3 years is cost-competitive with branded pharmacological prevention options.</p>
-        </div>
-      </div>
     </section>
 
   </div><!-- /container -->
