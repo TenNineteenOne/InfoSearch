@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CEFALY — Clinical Efficacy Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #151b24;
+      --surface2:  #1c2533;
+      --border:    #243042;
+      --accent:    #3b9eff;
+      --accent2:   #00e8b0;
+      --accent3:   #ff6b6b;
+      --warn:      #f5a623;
+      --text:      #e2e8f0;
+      --muted:     #7a8fa6;
+      --heading:   #ffffff;
+      --tag-bg:    rgba(59,158,255,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      overflow: hidden;
+      padding: 80px 0 60px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #0d1117 0%, #0f1d2e 60%, #0d1117 100%);
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(59,158,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 32px;
+      position: relative; z-index: 1;
+    }
+
+    .report-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--tag-bg);
+      color: var(--accent);
+      border: 1px solid rgba(59,158,255,0.25);
+    }
+
+    .tag.green  { background: rgba(0,232,176,0.1);  color: var(--accent2); border-color: rgba(0,232,176,0.25); }
+    .tag.yellow { background: rgba(245,166,35,0.1); color: var(--warn);    border-color: rgba(245,166,35,0.25); }
+    .tag.red    { background: rgba(255,107,107,0.1);color: var(--accent3); border-color: rgba(255,107,107,0.25); }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: var(--heading);
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 32px;
+      letter-spacing: 0.01em;
+    }
+
+    .header-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--accent); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--heading);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-inner::-webkit-scrollbar { display: none; }
+
+    nav a {
+      font-family: 'DM Mono', monospace;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 14px 16px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    nav a:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── SECTIONS ── */
+    main { padding: 0 0 80px; }
+
+    section {
+      border-bottom: 1px solid var(--border);
+      padding: 56px 0;
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.65rem;
+      color: var(--heading);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin: 32px 0 12px;
+    }
+
+    p { margin-bottom: 14px; color: var(--text); }
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: var(--heading); font-weight: 600; }
+
+    em { color: var(--warn); font-style: normal; font-weight: 500; }
+
+    /* ── INFO GRID ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .info-block .label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .info-block .value {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* ── STUDY CARDS ── */
+    .study-cards { display: flex; flex-direction: column; gap: 16px; }
+
+    .study-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      position: relative;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .study-card:hover {
+      border-color: rgba(59,158,255,0.4);
+      transform: translateX(3px);
+    }
+
+    .study-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .study-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    .study-year { font-size: 12px; color: var(--muted); }
+
+    .study-card p { font-size: 14px; margin-bottom: 8px; }
+
+    .study-metrics {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;
+    }
+
+    .metric-pill {
+      background: rgba(0,232,176,0.08);
+      border: 1px solid rgba(0,232,176,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--accent2);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .warning-pill {
+      background: rgba(245,166,35,0.08);
+      border: 1px solid rgba(245,166,35,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--warn);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── TABLES ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin: 24px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead tr {
+      background: var(--surface2);
+    }
+
+    thead th {
+      padding: 13px 16px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(59,158,255,0.04); }
+
+    td {
+      padding: 13px 16px;
+      vertical-align: top;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    td:first-child {
+      color: var(--heading);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .highlight-cell { color: var(--accent2); font-weight: 500; }
+    .soc-cell { color: var(--warn); }
+    .note-cell { color: var(--muted); font-size: 12px; }
+
+    /* ── SAFETY ── */
+    .ae-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .ae-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .ae-card .freq {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .ae-card.common .freq    { color: var(--warn); }
+    .ae-card.uncommon .freq  { color: var(--accent); }
+    .ae-card.rare .freq      { color: var(--accent2); }
+
+    .ae-card ul { list-style: none; padding: 0; }
+    .ae-card ul li {
+      font-size: 13.5px;
+      color: var(--text);
+      padding: 3px 0;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .ae-card ul li::before {
+      content: '–';
+      position: absolute; left: 0;
+      color: var(--muted);
+    }
+
+    .alert-box {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: rgba(245,166,35,0.06);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+
+    .alert-box .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .alert-box p { margin: 0; font-size: 13.5px; color: var(--text); }
+
+    /* ── COST ── */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .cost-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .cost-card .cost-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .cost-card .cost-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--heading);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .cost-card .cost-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ── GAPS ── */
+    .gap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .gap-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .gap-item .gap-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .gap-item p { margin: 0; font-size: 13.5px; }
+
+    /* ── SOURCES ── */
+    .source-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .source-row:last-child { border-bottom: none; }
+
+    .star-rating { font-size: 14px; flex-shrink: 0; min-width: 60px; }
+
+    .source-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+    .source-text .src-name { color: var(--heading); font-weight: 500; }
+    .source-text .src-meta { color: var(--muted); font-size: 12px; }
+    .source-excluded { color: var(--accent3); }
+
+    /* ── BOTTOM LINE ── */
+    .bottom-line {
+      background: linear-gradient(135deg, var(--surface) 0%, #162235 100%);
+      border: 1px solid rgba(59,158,255,0.3);
+      border-radius: 12px;
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .bottom-line::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .bottom-line .bl-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .bottom-line p { font-size: 15px; line-height: 1.7; margin: 0 0 10px; }
+    .bottom-line p:last-child { margin: 0; }
+
+    .access-summary {
+      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      padding-top: 14px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    section { animation: fadeUp 0.4s ease both; }
+
+    section:nth-child(1) { animation-delay: 0.05s; }
+    section:nth-child(2) { animation-delay: 0.10s; }
+    section:nth-child(3) { animation-delay: 0.15s; }
+    section:nth-child(4) { animation-delay: 0.20s; }
+    section:nth-child(5) { animation-delay: 0.25s; }
+    section:nth-child(6) { animation-delay: 0.30s; }
+    section:nth-child(7) { animation-delay: 0.35s; }
+    section:nth-child(8) { animation-delay: 0.40s; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ HEADER -->
+<header>
+  <div class="container">
+    <div class="report-meta">
+      <span class="tag">Clinical Efficacy Report</span>
+      <span class="tag green">Neurological Device</span>
+      <span class="tag">March 15, 2026</span>
+      <span class="tag yellow">Licensed Clinician Audience</span>
+    </div>
+
+    <h1>CEFALY<br>External Trigeminal<br>Nerve Stimulator</h1>
+    <p class="subtitle">eTNS · FDA-Cleared · Migraine Acute &amp; Preventive · CEFALY Technology, Belgium</p>
+
+    <div class="header-stats">
+      <div class="stat-card">
+        <div class="stat-num">26%</div>
+        <div class="stat-label">Pain freedom at 2hrs (TEAM study)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">38%</div>
+        <div class="stat-label">≥50% responder rate — prevention (PREMICE)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">79%</div>
+        <div class="stat-label">Pain relief rate at 1hr — acute (ACME)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">$499</div>
+        <div class="stat-label">One-time device cost (+ ~$400/yr electrodes)</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#s1">Identification</a>
+    <a href="#s2">Mechanism</a>
+    <a href="#s3">Clinical Evidence</a>
+    <a href="#s4">Efficacy vs SOC</a>
+    <a href="#s5">Safety</a>
+    <a href="#s6">Cost &amp; Access</a>
+    <a href="#s7">Gaps</a>
+    <a href="#s8">Sources</a>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <!-- ─── 1. IDENTIFICATION -->
+    <section id="s1">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2>Identification &amp; Regulatory Status</h2>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-block">
+          <div class="label">Device Name</div>
+          <div class="value">CEFALY Connected (current gen)<br>Manufacturer: CEFALY Technology, Seraing, Belgium</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Device Category</div>
+          <div class="value">External Trigeminal Nerve Stimulator (eTNS) — Class II Medical Device</div>
+        </div>
+        <div class="info-block">
+          <div class="label">FDA 510(k) — Prevention</div>
+          <div class="value">Cleared March 2014 · Preventive treatment of episodic migraine with or without aura, patients ≥18 yrs</div>
+        </div>
+        <div class="info-block">
+          <div class="label">FDA 510(k) — Acute</div>
+          <div class="value">Cleared 2021 · Acute treatment of migraine with or without aura, patients ≥18 yrs</div>
+        </div>
+        <div class="info-block">
+          <div class="label">CE Mark (Europe)</div>
+          <div class="value">2008 — First market entry; first FDA-cleared migraine device available OTC without prescription</div>
+        </div>
+        <div class="info-block">
+          <div class="label">Off-Label Use</div>
+          <div class="value">Chronic migraine (eTNS explored in pilot; no large sham-controlled trial completed). No formally recognized off-label indications.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 2. MECHANISM -->
+    <section id="s2">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2>Mechanism of Action</h2>
+      </div>
+      <p>CEFALY targets the trigeminal nerve — the primary nociceptive pathway in migraine — via a supraorbital bipolar self-adhesive electrode placed across the forehead. The device delivers <strong>rectangular biphasic symmetrical pulses at 100 Hz</strong> (verum), with current intensity ramping linearly to a maximum of 16 mA over the first 14 minutes, then held constant.</p>
+      <p>Two operational modes correspond to distinct physiological targets:</p>
+      <div class="info-grid">
+        <div class="info-block">
+          <div class="label">PREVENT Mode (20 min/day)</div>
+          <div class="value">Modulates trigeminovascular sensitization over time; raises the migraine trigger threshold with repeated daily stimulation. Effect is cumulative — full benefit typically emerges over 4–12 weeks.</div>
+        </div>
+        <div class="info-block">
+          <div class="label">ACUTE Mode (60–120 min)</div>
+          <div class="value">Targets active nociceptive signaling during an attack. Applied at earliest sign of migraine onset; works via inhibition of trigeminal nucleus caudalis afferent transmission.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 3. CLINICAL EVIDENCE -->
+    <section id="s3">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2>Clinical Evidence Summary</h2>
+      </div>
+
+      <p>Three pivotal sham-controlled RCTs form the core evidence base. <em>⚠ All three were sponsored or co-designed by CEFALY Technology</em> — an important funding caveat noted throughout. Independent replication is lacking.</p>
+
+      <div class="study-cards">
+
+        <div class="study-card">
+          <div class="study-card-header">
+            <span class="study-name">PREMICE (2013)</span>
+            <span class="tag green">Prevention</span>
+            <span class="study-year">Schoenen et al. · Neurology 2013</span>
+          </div>
+          <p>Prospective, multicenter, double-blind, randomized, sham-controlled trial across <strong>5 Belgian tertiary headache clinics</strong>. After a 1-month run-in, patients with ≥2 migraine attacks/month were randomized to verum or sham (20 min/day × 3 months). <strong>N=67 ITT.</strong></p>
+          <p>Primary outcomes: change in monthly migraine days (MMDs) and 50% responder rate.</p>
+          <div class="study-metrics">
+            <span class="metric-pill">N=67 ITT</span>
+            <span class="metric-pill">38.2% responder rate vs 12.1% sham</span>
+            <span class="metric-pill">p=0.023</span>
+            <span class="metric-pill">30% MMD reduction</span>
+            <span class="warning-pill">⚠ Industry-sponsored</span>
+            <span class="warning-pill">⚠ Underpowered</span>
+          </div>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-header">
+            <span class="study-name">ACME (2018)</span>
+            <span class="tag">Acute — 1hr</span>
+            <span class="study-year">Chou et al. · Cephalalgia 2019</span>
+          </div>
+          <p>Double-blind, randomized, sham-controlled study across <strong>3 U.S. headache centers</strong>. Adults experiencing an acute migraine attack (with or without aura) randomized 1:1 to verum or sham eTNS for 1 hour. <strong>N=106 ITT</strong> (verum n=52; sham n=54).</p>
+          <p>Primary outcome: mean change in pain intensity via VAS at 1 hour.</p>
+          <div class="study-metrics">
+            <span class="metric-pill">N=106 ITT</span>
+            <span class="metric-pill">79% pain relief</span>
+            <span class="metric-pill">32% pain freedom</span>
+            <span class="metric-pill">59% pain intensity reduction</span>
+            <span class="metric-pill">Effect sustained 24hrs</span>
+            <span class="warning-pill">⚠ Industry-sponsored</span>
+          </div>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-header">
+            <span class="study-name">TEAM (2022)</span>
+            <span class="tag">Acute — 2hr · Phase 3</span>
+            <span class="study-year">Kuruvilla et al. · Scientific Reports 2022</span>
+          </div>
+          <p>Prospective, multicenter, randomized, double-blind, sham-controlled Phase 3 trial. <strong>N=538 adults</strong> (ICHD-3 criteria, 2–8 migraine headache days/month) randomized 1:1 to 2-hour active or sham for a single moderate-to-severe attack treated at home. Largest sham-controlled trial of any eTNS therapy for migraine.</p>
+          <p>Primary endpoints: pain freedom at 2hrs and freedom from most bothersome symptom (MBS) at 2hrs.</p>
+          <div class="study-metrics">
+            <span class="metric-pill">N=538 — largest eTNS RCT</span>
+            <span class="metric-pill">26% pain freedom (vs 16% sham)</span>
+            <span class="metric-pill">58.9% MBS freedom (vs 42.2% sham)</span>
+            <span class="metric-pill">p=0.0167 pain freedom</span>
+            <span class="metric-pill">p=0.0006 MBS freedom</span>
+            <span class="warning-pill">⚠ Industry-sponsored</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── 4. EFFICACY vs SOC -->
+    <section id="s4">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2>Efficacy Findings vs. Standard of Care</h2>
+      </div>
+
+      <p><strong>SOC Reference:</strong> Per AAN/AHS guidelines — triptans are first-line acute therapy; topiramate, beta-blockers, amitriptyline, and anti-CGRP mAbs (first-line per 2024 AHS consensus) are preventive options.</p>
+
+      <h3>4a — Acute Treatment Comparison</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>CEFALY (ACME, 1hr)</th>
+              <th>CEFALY (TEAM, 2hr)</th>
+              <th>Sumatriptan 100mg (SOC)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pain freedom at endpoint</td>
+              <td class="highlight-cell">32% (1hr)</td>
+              <td class="highlight-cell">27.3% (2hr)</td>
+              <td class="soc-cell">~30–40% (2hr)</td>
+              <td class="note-cell">Sumatriptan benchmarks from Class I RCT data</td>
+            </tr>
+            <tr>
+              <td>Pain relief (≥50% reduction)</td>
+              <td class="highlight-cell">79% (1hr)</td>
+              <td class="highlight-cell">—</td>
+              <td class="soc-cell">~60–70%</td>
+              <td class="note-cell">ACME used VAS; triptan trials use headache scale</td>
+            </tr>
+            <tr>
+              <td>Freedom from MBS</td>
+              <td class="highlight-cell">Not reported</td>
+              <td class="highlight-cell">58.9% vs. 42.2% sham (p=0.0006)</td>
+              <td class="soc-cell">~55–65%</td>
+              <td class="note-cell">Comparable MBS freedom rates</td>
+            </tr>
+            <tr>
+              <td>Therapeutic gain vs. control</td>
+              <td class="highlight-cell">29% vs. 6% sham (p&lt;0.0001)</td>
+              <td class="highlight-cell">9.55% gain (p=0.0167)</td>
+              <td class="soc-cell">~25–35% gain over placebo</td>
+              <td class="note-cell">CEFALY TEAM gain is modest but statistically significant</td>
+            </tr>
+            <tr>
+              <td>Sustained relief at 24hrs</td>
+              <td class="highlight-cell">Maintained</td>
+              <td class="highlight-cell">Maintained</td>
+              <td class="soc-cell">~18–24hr in RCTs</td>
+              <td class="note-cell">Broadly comparable</td>
+            </tr>
+            <tr>
+              <td>Trial quality</td>
+              <td class="highlight-cell">DB RCT, multicenter, US</td>
+              <td class="highlight-cell">DB RCT, Phase 3, multicenter</td>
+              <td class="soc-cell">Class I Cochrane-reviewed RCTs</td>
+              <td class="note-cell">Triptan evidence base substantially larger</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4b — Preventive Treatment Comparison</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>CEFALY (PREMICE)</th>
+              <th>Anti-CGRP mAbs (e.g., Erenumab)</th>
+              <th>Topiramate (SOC)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>≥50% Responder Rate</td>
+              <td class="highlight-cell">38.2% vs. 12.1% sham (p=0.023)</td>
+              <td class="soc-cell">~50–60% (APPRAISE: 55.4%)</td>
+              <td class="soc-cell">~31–40%</td>
+              <td class="note-cell">CGRP mAbs substantially outperform on responder rate</td>
+            </tr>
+            <tr>
+              <td>Monthly Migraine Day Reduction</td>
+              <td class="highlight-cell">~30% (mean 2.06 days)</td>
+              <td class="soc-cell">~3.2–3.7 fewer MMD vs. placebo</td>
+              <td class="soc-cell">~2–3 fewer MMD</td>
+              <td class="note-cell">CGRP mAbs deliver larger absolute reduction</td>
+            </tr>
+            <tr>
+              <td>Therapeutic Gain vs. Control</td>
+              <td class="highlight-cell">~26%</td>
+              <td class="soc-cell">Larger across most data</td>
+              <td class="soc-cell">Comparable to CEFALY</td>
+              <td class="note-cell">Within range of other non-drug preventives</td>
+            </tr>
+            <tr>
+              <td>Medication Overuse Reduction</td>
+              <td class="highlight-cell">36.7% reduction (p=0.006)</td>
+              <td class="soc-cell">Significant in meta-analyses</td>
+              <td class="soc-cell">Moderate</td>
+              <td class="note-cell">Clinically meaningful for MOH patients</td>
+            </tr>
+            <tr>
+              <td>Tolerability</td>
+              <td class="highlight-cell">Excellent — no serious AEs</td>
+              <td class="soc-cell">URTI, injection site Rxn, constipation</td>
+              <td class="soc-cell">Cognitive AEs, weight loss, teratogenic</td>
+              <td class="note-cell">CEFALY safety profile clearly superior</td>
+            </tr>
+            <tr>
+              <td>Trial Size</td>
+              <td class="highlight-cell">N=67</td>
+              <td class="soc-cell">N=500–1,000+ per pivotal</td>
+              <td class="soc-cell">N=200–500+</td>
+              <td class="note-cell">PREMICE substantially underpowered</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── 5. SAFETY -->
+    <section id="s5">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2>Safety &amp; Adverse Effects</h2>
+      </div>
+
+      <p>AEs were reported in <strong>7.05% of active stimulation participants</strong> and 2.64% of sham participants in the TEAM study. Most common: forehead paresthesia, discomfort, or burning (3.5% active group). No serious adverse events in any pivotal trial.</p>
+
+      <div class="ae-grid">
+        <div class="ae-card common">
+          <div class="freq">Common</div>
+          <ul>
+            <li>Post-session somnolence</li>
+            <li>Headache after a session</li>
+          </ul>
+        </div>
+        <div class="ae-card uncommon">
+          <div class="freq">Uncommon</div>
+          <ul>
+            <li>Forehead skin erythema</li>
+            <li>Nausea</li>
+            <li>Forehead paresthesia / burning</li>
+          </ul>
+        </div>
+        <div class="ae-card rare">
+          <div class="freq">Rare</div>
+          <ul>
+            <li>Forehead contact allergy (acrylate)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert-box">
+        <span class="icon">⚠️</span>
+        <p><strong>Black Box Warnings:</strong> None. &nbsp;|&nbsp; <strong>Contraindications:</strong> Implanted cardiac devices (pacemakers, loop monitors, ICDs) — contraindicated; risk of interference unknown per FDA labeling. Active implanted neurostimulators. Known electrode material allergy. Do not use during driving or operating machinery — device induces somnolence during and within 1 hour of treatment. Not studied in pregnancy; voluntary pregnancy registry active.</p>
+      </div>
+    </section>
+
+    <!-- ─── 6. COST & ACCESS -->
+    <section id="s6">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2>Cost, Access &amp; Formulary Considerations</h2>
+      </div>
+
+      <div class="cost-grid">
+        <div class="cost-card">
+          <div class="cost-label">Device (one-time)</div>
+          <div class="cost-value">$499</div>
+          <div class="cost-note">CEFALY Connected; no prescription required; direct-to-consumer</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Electrodes (annual)</div>
+          <div class="cost-value">~$400</div>
+          <div class="cost-note">$25/3-pack or lower via subscription plan</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Anti-CGRP mAbs (annual WAC)</div>
+          <div class="cost-value">$6–8.5K</div>
+          <div class="cost-note">Before rebates; step therapy requirements common</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Branded Triptans (monthly)</div>
+          <div class="cost-value">$200–600+</div>
+          <div class="cost-note">Generic triptans: $5–30/month — substantially cheaper</div>
+        </div>
+      </div>
+
+      <h3>Insurance &amp; Coverage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Payer / Category</th>
+              <th>Status</th>
+              <th>Code / Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Medicare</td>
+              <td style="color:var(--accent3)">❌ Non-covered</td>
+              <td class="note-cell">HCPCS A9270 — noncovered item; preventive-purpose devices excluded from DME benefit</td>
+            </tr>
+            <tr>
+              <td>Commercial Insurers</td>
+              <td style="color:var(--warn)">⚠ Inconsistent</td>
+              <td class="note-cell">HCPCS E0733 or TENS codes E0720/E0730; often requires PA + letter of medical necessity</td>
+            </tr>
+            <tr>
+              <td>HSA / FSA</td>
+              <td style="color:var(--accent2)">✓ Eligible</td>
+              <td class="note-cell">Device and electrodes qualify as eligible medical expenses</td>
+            </tr>
+            <tr>
+              <td>VA / Veterans</td>
+              <td style="color:var(--accent2)">✓ Available</td>
+              <td class="note-cell">Dedicated VA purchasing pathway; discounted pricing for eligible veterans</td>
+            </tr>
+            <tr>
+              <td>Patient Financing</td>
+              <td style="color:var(--accent2)">✓ Available</td>
+              <td class="note-cell">Affirm (~$41/mo), PayPal Credit via cefaly.com</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert-box">
+        <span class="icon">💡</span>
+        <p><strong>Cost horizon context:</strong> CEFALY's one-time capital cost plus electrode consumables is substantially lower than branded pharmacological prevention options over a 2–3 year period. Medicare non-coverage (A9270) and inconsistent commercial DME reimbursement are the primary access barriers to anticipate. Pricing data current as of March 2026 — WAC and formulary tiers change frequently.</p>
+      </div>
+    </section>
+
+    <!-- ─── 7. GAPS -->
+    <section id="s7">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <h2>Evidence Gaps &amp; Limitations</h2>
+      </div>
+
+      <div class="gap-list">
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>Small PREMICE trial (N=67):</strong> Substantially underpowered relative to modern regulatory standards; limits generalizability of all prevention efficacy data.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>All major trials industry-sponsored:</strong> CEFALY Technology participated in design, data collection, analysis, and manuscript writing across all three pivotal studies. Independent replication is lacking.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>No direct head-to-head trial vs. active pharmacological comparator</strong> (triptans, topiramate, CGRP mAbs): All efficacy benchmarks above are indirect or network meta-analytic comparisons.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>Chronic migraine population:</strong> FDA indication is episodic migraine only. A single-center, open-label pilot explored eTNS in chronic migraine, but no large sham-controlled trial has been completed in this population.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>TEAM therapeutic gain (9.55%):</strong> While statistically significant, the absolute gain over sham is modest; clinicians should contextualize this carefully in shared decision-making conversations.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>Long-term durability data:</strong> No trials beyond 3–6 months follow-up; durability of preventive effect after cessation is unknown.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>Sham-blinding integrity:</strong> Device trials are inherently harder to blind than drug RCTs — patients feeling tingling from verum but nothing from sham may correctly identify their group, potentially inflating apparent treatment effect.</p>
+        </div>
+        <div class="gap-item">
+          <span class="gap-icon">⚠️</span>
+          <p><strong>Pediatric population:</strong> Not studied; FDA indication limited to adults ≥18 years of age.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 8. SOURCES -->
+    <section id="s8">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <h2>Sources &amp; Confidence Ratings</h2>
+      </div>
+
+      <p style="margin-bottom:20px; font-size:13.5px; color:var(--muted)">
+        ⭐⭐⭐ High — PubMed-indexed RCTs, Cochrane reviews, FDA/EMA labeling, major clinical guidelines &nbsp;|&nbsp;
+        ⭐⭐ Moderate — Prospective observational, large registries, peer-reviewed case series &nbsp;|&nbsp;
+        ⭐ Low — Retrospective, pilots, expert opinion, un-reviewed preprints &nbsp;|&nbsp;
+        ❌ Excluded — Alt medicine, manufacturer marketing
+      </p>
+
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">PREMICE RCT — Schoenen et al.</span><br>
+          <span class="src-meta">Neurology 2013 · PMC3620126 · N=67 · Prevention endpoint</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">ACME RCT — Chou et al.</span><br>
+          <span class="src-meta">Cephalalgia 2019 · PubMed 30449151 · N=106 · Acute 1-hr endpoint</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">TEAM Phase 3 RCT — Kuruvilla et al.</span><br>
+          <span class="src-meta">Scientific Reports 2022 · PMC8948251 · N=538 · Largest eTNS acute trial</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">PMC Review of t-SNS data — Magis &amp; Schoenen</span><br>
+          <span class="src-meta">2015 · PMC4676766 · Comprehensive mechanism &amp; evidence review</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">FDA 510(k) Clearance Documentation</span><br>
+          <span class="src-meta">FDA.gov · Prevention (2014) &amp; Acute (2021) clearances</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">AHS Position Statement — CGRP as first-line (2024)</span><br>
+          <span class="src-meta">American Headache Society · 2024 Consensus Guideline Update</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">CGRP mAb vs. Topiramate — APPRAISE Trial</span><br>
+          <span class="src-meta">PMC11861264 · 2024 · Used for SOC comparator benchmarking</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐</span>
+        <div class="source-text">
+          <span class="src-name">Chronic Migraine eTNS Pilot — Birlea et al.</span><br>
+          <span class="src-meta">SAGE Journals 2019 · Single-center, open-label, small N · Low confidence</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating">⭐⭐⭐</span>
+        <div class="source-text">
+          <span class="src-name">CMS/Noridian Coding Guidance — A9270</span><br>
+          <span class="src-meta">Noridian Medicare DME · Medicare non-coverage basis</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span class="star-rating source-excluded">❌</span>
+        <div class="source-text source-excluded">
+          <span class="src-name">CEFALY.com Clinical Studies Page</span><br>
+          <span class="src-meta">Manufacturer marketing material — excluded from efficacy claims</span>
+        </div>
+      </div>
+
+      <!-- BOTTOM LINE -->
+      <div class="bottom-line" style="margin-top:36px">
+        <div class="bl-label">Bottom Line</div>
+        <p>CEFALY has credible, peer-reviewed RCT evidence supporting modest but statistically significant efficacy for both acute and preventive episodic migraine treatment, with an excellent safety profile; however, all pivotal trials are industry-sponsored, the prevention trial is substantially underpowered, therapeutic gain over sham is modest for acute use, and no head-to-head pharmacological comparator data exist — positioning it best as an adjunct or a preferred option for patients with contraindications to, intolerance of, or preference against pharmacological therapies.</p>
+        <div class="access-summary">
+          <div class="bl-label">Access Summary</div>
+          <p>Medicare non-coverage (A9270) and inconsistent commercial payer DME reimbursement are the primary access barriers; out-of-pocket cost is approximately $500 upfront plus $350–$450/year in electrodes, which over 2–3 years is cost-competitive with branded pharmacological prevention options.</p>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /container -->
+</main>
+
+<footer>
+  <p>Clinical Efficacy Report · CEFALY eTNS Device · Generated March 15, 2026<br>
+  For licensed clinical use only. Not a substitute for clinical judgment. All data sourced from peer-reviewed literature and regulatory filings.</p>
+</footer>
+
+</body>
+</html>
